@@ -1,0 +1,180 @@
+﻿@model MVC_Movie.Models.Movie
+@using MVC_Movie.Models
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="max-width:800px; margin:30px auto;">
+    <div class="row">
+
+        <!-- Ảnh bên trái -->
+        <div class="col-md-4 text-center">
+            @if (!string.IsNullOrEmpty(Model.ImagePath))
+            {
+                <img src="@Model.ImagePath" style="width:100%; border-radius:10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" />
+            }
+            else
+            {
+                <div style="width:100%; height:250px; background:#ccc; border-radius:10px; line-height:250px; text-align:center; color:#666;">
+                    <i class="glyphicon glyphicon-film" style="font-size:60px;"></i>
+                </div>
+            }
+        </div>
+
+        <!-- Thông tin bên phải -->
+        <div class="col-md-8">
+            <h2>@Model.Name</h2>
+            <hr />
+            <table class="table table-striped">
+                <tr>
+                    <td><strong>Thể loại</strong></td>
+                    <td>@Model.Genre.Name</td>
+                </tr>
+                <tr>
+                    <td><strong>Ngày phát hành</strong></td>
+                    <td>@(Model.ReleaseDate.HasValue ? Model.ReleaseDate.Value.ToString("dd/MM/yyyy") : "N/A")</td>
+                </tr>
+                <tr>
+                    <td><strong>Ngày thêm vào</strong></td>
+                    <td>@Model.DateAdded.ToString("dd/MM/yyyy")</td>
+                </tr>
+                <tr>
+                    <td><strong>Số lượng trong kho</strong></td>
+                    <td>@Model.NumberInStock</td>
+                </tr>
+                <tr>
+                    <td><strong>Còn có thể thuê</strong></td>
+                    <td>
+                        @if (Model.NumberAvailable > 0)
+                        {
+                            <span class="label label-success">@Model.NumberAvailable còn lại</span>
+                        }
+                        else
+                        {
+                            <span class="label label-danger">Hết hàng</span>
+                        }
+                    </td>
+                </tr>
+            </table>
+
+            <tr>
+                <td><strong>Giá thuê</strong></td>
+                <td>
+                    @if (Model.RentalPrice > 0)
+                    {
+                        <span style="color:#e74c3c; font-weight:bold;">
+                            @Model.RentalPrice.ToString("N0") VNĐ
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">Chưa cập nhật</span>
+                    }
+                </td>
+            </tr>
+
+            <div style="margin-top:20px;">
+                @if (Model.NumberAvailable > 0)
+                {
+                    <a href="/rentals/book/@Model.Id" class="btn btn-primary">
+                        <i class="glyphicon glyphicon-shopping-cart"></i> Thuê ngay
+                    </a>
+                }
+                @if (User.IsInRole("CanManageMovies"))
+                {
+                    <a href="/movies/edit/@Model.Id" class="btn btn-warning" style="margin-left:10px;">
+                        <i class="glyphicon glyphicon-pencil"></i> Chỉnh sửa
+                    </a>
+                }
+                <a href="/movies" class="btn btn-default" style="margin-left:10px;">
+                    <i class="glyphicon glyphicon-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <div style="margin-top:15px;">
+            <h4>Tổng Quan Phim</h4>
+            <p>@Model.Description</p>
+        </div>
+    }
+
+    <hr />
+    <h4><i class="glyphicon glyphicon-star"></i> Đánh giá phim</h4>
+
+    @{
+        var reviews = ViewBag.Reviews as List<MVC_Movie.Models.Review>;
+    }
+
+    @if (reviews != null && reviews.Any())
+    {
+        foreach (var r in reviews)
+        {
+            <div style="border:1px solid #ddd; border-radius:8px; padding:10px; margin-bottom:10px;">
+                <strong>@r.Customer.Name</strong>
+                <span style="color:#f39c12;">
+                    @for (int s = 1; s <= 5; s++)
+                    {
+                        <i class="glyphicon @(s <= r.Rating ? "glyphicon-star" : "glyphicon-star-empty")"></i>
+                    }
+                </span>
+                <p style="margin:5px 0 0;">@r.Comment</p>
+            </div>
+        }
+    }
+    else
+    {
+        <p class="text-muted">Chưa có đánh giá nào.</p>
+    }
+
+    @if (Request.IsAuthenticated)
+    {
+        <div style="margin-top:20px; max-width:500px;">
+            <h5>Viết đánh giá của bạn:</h5>
+            <div class="form-group">
+                <label>Số sao</label>
+                <select id="rating" class="form-control" style="width:100px;">
+                    <option value="1">1 ⭐</option>
+                    <option value="2">2 ⭐</option>
+                    <option value="3">3 ⭐</option>
+                    <option value="4">4 ⭐</option>
+                    <option value="5">5 ⭐</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Bình luận</label>
+                <textarea id="comment" class="form-control" rows="3"></textarea>
+            </div>
+            <button id="btnReview" class="btn btn-warning">
+                <i class="glyphicon glyphicon-pencil"></i> Gửi đánh giá
+            </button>
+        </div>
+    }
+
+    @section scripts{
+        <script>
+        $("#btnReview").click(function () {
+            $.ajax({
+                url: "/api/reviews",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    movieId: @Model.Id,
+                    rating: parseInt($("#rating").val()),
+                    comment: $("#comment").val()
+                })
+            })
+            .done(function () {
+                toastr.success("Đánh giá thành công!");
+                setTimeout(function () { location.reload(); }, 1500);
+            })
+            .fail(function (xhr) {
+                toastr.error(xhr.responseJSON ? xhr.responseJSON.message : "Có lỗi xảy ra.");
+            });
+        });
+        </script>
+    }
+</div>

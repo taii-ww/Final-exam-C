@@ -1,0 +1,92 @@
+﻿@model MVC_Movie.ViewModels.MovieFormViewModel
+@{
+    ViewBag.Title = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="margin:30px;">
+    <div style="background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
+        <div style="background:#8e44ad; padding:25px 30px;">
+            <h2 style="color:#fff; margin:0;">
+                <i class="glyphicon glyphicon-film"></i> @Model.Title
+            </h2>
+        </div>
+        <div style="padding:30px;">
+            @using (Html.BeginForm("Save", "Movies", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Tên phim</label>
+                            @Html.TextBoxFor(m => m.Name, new { @class = "form-control", placeholder = "Nhập tên phim..." })
+                            @Html.ValidationMessageFor(m => m.Name)
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Ngày phát hành</label>
+                            @Html.TextBoxFor(m => m.ReleaseDate, "{0:d MMM yyyy}", new { @class = "form-control", placeholder = "VD: 1 Jan 2020" })
+                            @Html.ValidationMessageFor(m => m.ReleaseDate)
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Thể loại</label>
+                            @Html.DropDownListFor(m => m.GenreId, new SelectList(Model.Genres, "Id", "Name"), "-- Chọn thể loại --", new { @class = "form-control" })
+                            @Html.ValidationMessageFor(m => m.GenreId)
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Số lượng</label>
+                            @Html.TextBoxFor(m => m.NumberInStock, new { @class = "form-control", placeholder = "0" })
+                            @Html.ValidationMessageFor(m => m.NumberInStock)
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Giá thuê (VNĐ)</label>
+                            @Html.TextBoxFor(m => m.RentalPrice, new { @class = "form-control", placeholder = "0" })
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Tóm tắt nội dung</label>
+                    @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = "4", placeholder = "Nhập mô tả phim..." })
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Poster / Hình ảnh</label>
+                    @if (!string.IsNullOrEmpty(Model.ImagePath))
+                    {
+                        <div style="margin-bottom:10px;">
+                            <img src="@Model.ImagePath" style="max-height:180px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.2);" />
+                        </div>
+                    }
+                    <input type="file" name="imageFile" accept="image/*" class="form-control" />
+                </div>
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.ImagePath)
+                @Html.AntiForgeryToken()
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-lg btn-block" style="background:#8e44ad; color:#fff;">
+                            <i class="glyphicon glyphicon-ok"></i> Lưu
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index")" class="btn btn-default btn-lg btn-block">
+                            <i class="glyphicon glyphicon-arrow-left"></i> Hủy
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+}

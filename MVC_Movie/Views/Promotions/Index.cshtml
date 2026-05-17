@@ -1,0 +1,47 @@
+﻿@model IEnumerable<MVC_Movie.Models.Promotion>
+@{
+    ViewBag.Title = "Khuyến mãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>
+    Danh sách khuyến mãi
+    <a href="@Url.Action("New")" class="btn btn-primary btn-sm" style="margin-left:10px;">
+        <i class="glyphicon glyphicon-plus"></i> Thêm mới
+    </a>
+</h2>
+<table class="table table-bordered table-hover" style="margin-top:20px;">
+    <thead style="background:#222; color:#fff;">
+        <tr>
+            <th>Mã</th>
+            <th>Giảm giá</th>
+            <th>Từ ngày</th>
+            <th>Đến ngày</th>
+            <th>Trạng thái</th>
+            <th>Sửa</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            <tr>
+                <td><strong>@p.Code</strong></td>
+                <td>@p.DiscountPercent%</td>
+                <td>@p.StartDate.ToString("dd/MM/yyyy")</td>
+                <td>@p.EndDate.ToString("dd/MM/yyyy")</td>
+                <td>
+                    @if (p.IsActive && p.EndDate >= DateTime.Now)
+                    {
+                        <span class="label label-success">Đang hoạt động</span>
+                    }
+                    else
+                    {
+                        <span class="label label-danger">Hết hạn</span>
+                    }
+                </td>
+                <td>
+                    <a href="@Url.Action("Edit", new { id = p.Id })" class="btn btn-warning btn-sm">Sửa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,81 @@
+﻿@model MVC_Movie.Models.Promotion
+@{
+    ViewBag.Title = Model.Id == 0 ? "Thêm khuyến mãi" : "Sửa khuyến mãi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="max-width:600px; margin:30px auto;">
+    <div style="background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
+        <div style="background:#e67e22; padding:25px 30px;">
+            <h2 style="color:#fff; margin:0;">
+                <i class="glyphicon glyphicon-tag"></i> @ViewBag.Title
+            </h2>
+        </div>
+        <div style="padding:30px;">
+            @using (Html.BeginForm("Save", "Promotions"))
+            {
+                <div class="row">
+                    <div class="col-md-7">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Mã khuyến mãi</label>
+                            @Html.TextBoxFor(m => m.Code, new { @class = "form-control", placeholder = "VD: SUMMER2026" })
+                            @Html.ValidationMessageFor(m => m.Code)
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Giảm giá (%)</label>
+                            @Html.TextBoxFor(m => m.DiscountPercent, new { @class = "form-control", placeholder = "VD: 20" })
+                            @Html.ValidationMessageFor(m => m.DiscountPercent)
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Từ ngày</label>
+                            @Html.TextBoxFor(m => m.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;">Đến ngày</label>
+                            @Html.TextBoxFor(m => m.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Áp dụng cho phim</label>
+                    @Html.DropDownListFor(m => m.MovieId,
+                        new SelectList(ViewBag.Movies, "Id", "Name"),
+                        "-- Tất cả phim --",
+                        new { @class = "form-control" })
+                    <small class="text-muted">Để trống = áp dụng cho tất cả phim</small>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(m => m.IsActive)
+                            <strong>Kích hoạt mã này</strong>
+                        </label>
+                    </div>
+                </div>
+                @Html.HiddenFor(m => m.Id)
+                @Html.AntiForgeryToken()
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-lg btn-block" style="background:#e67e22; color:#fff;">
+                            <i class="glyphicon glyphicon-ok"></i> Lưu
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index")" class="btn btn-default btn-lg btn-block">
+                            <i class="glyphicon glyphicon-arrow-left"></i> Hủy
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
