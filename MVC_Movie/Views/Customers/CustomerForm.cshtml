@@ -1,0 +1,68 @@
+﻿@model MVC_Movie.ViewModels.CustomerFormViewModel
+@{
+    ViewBag.Title = "New Customer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="max-width:600px; margin:30px auto;">
+    <div style="background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
+        <div style="background:#27ae60; padding:25px 30px;">
+            <h2 style="color:#fff; margin:0;">
+                <i class="glyphicon glyphicon-user"></i>
+                @(Model.Customer.Id == 0 ? "New Customer" : "Edit Customer")
+            </h2>
+        </div>
+        <div style="padding:30px;">
+            @using (Html.BeginForm("Save", "Customers"))
+            {
+                @Html.ValidationSummary(true, "Vui lòng kiểm tra lại thông tin.")
+                <div class="form-group">
+                    <label style="font-weight:600;">Họ tên</label>
+                    @Html.TextBoxFor(m => m.Customer.Name, new { @class = "form-control", placeholder = "Nhập họ tên..." })
+                    @Html.ValidationMessageFor(m => m.Customer.Name)
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Email</label>
+                    @Html.TextBoxFor(m => m.Customer.Email, new { @class = "form-control", placeholder = "Nhập email..." })
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Loại thành viên</label>
+                    @Html.DropDownListFor(m => m.Customer.MembershipTypeId, new SelectList(Model.MembershipTypes, "Id", "Name"), "-- Chọn loại thành viên --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(m => m.Customer.MembershipTypeId)
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;">Ngày sinh</label>
+                    @Html.TextBoxFor(m => m.Customer.Birthdate, "{0:d MMM yyyy}", new { @class = "form-control", placeholder = "VD: 1 Jan 2000" })
+                    @Html.ValidationMessageFor(m => m.Customer.Birthdate)
+                </div>
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            @Html.CheckBoxFor(m => m.Customer.IsSubscribedToNewsletter)
+                            <strong>Đăng ký nhận bản tin</strong>
+                        </label>
+                    </div>
+                </div>
+                @Html.HiddenFor(m => m.Customer.Id)
+                @Html.AntiForgeryToken()
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="submit" class="btn btn-success btn-lg btn-block">
+                            <i class="glyphicon glyphicon-ok"></i> Lưu
+                        </button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index")" class="btn btn-default btn-lg btn-block">
+                            <i class="glyphicon glyphicon-arrow-left"></i> Hủy
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    @Scripts.Render("~/bundles/jqueryval")
+}
