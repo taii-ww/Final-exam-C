@@ -1,0 +1,77 @@
+﻿@{
+    ViewBag.Title = "Trả phim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Danh sách phim đang thuê</h2>
+
+<table id="rentalsTable" class="table table-bordered table-hover">
+    <thead style="background:#222; color:#fff;">
+        <tr>
+            <th>Khách hàng</th>
+            <th>Tên phim</th>
+            <th>Ngày thuê</th>
+            <th>Hạn trả</th>
+            <th>Tiền thuê</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+@section scripts{
+    <script>
+    $(document).ready(function () {
+        var table = $("#rentalsTable").DataTable({
+            ajax: {
+                url: "/api/activeRentals",
+                dataSrc: ""
+            },
+            columns: [
+                { data: "customerName" },
+                { data: "movieName" },
+                { data: "dateRented" },
+                { data: "scheduledReturnDate" },
+                { data: "pricePaid" },
+                {
+                    data: "isOverdue",
+                    render: function (data) {
+                        return data
+                            ? "<span class='label label-danger'>Quá hạn</span>"
+                            : "<span class='label label-success'>Đang thuê</span>";
+                    }
+                },
+                {
+                    data: "id",
+                    render: function (data) {
+                        return "<button class='btn btn-warning btn-sm js-return' data-rental-id=" + data + ">Trả phim</button>";
+                    }
+                }
+            ]
+        });
+
+        $("#rentalsTable").on("click", ".js-return", function () {
+            var button = $(this);
+            var rentalId = button.attr("data-rental-id");
+            bootbox.confirm("Xác nhận trả phim?", function (result) {
+                if (result) {
+                    $.ajax({
+                        url: "/api/returnRentals",
+                        method: "POST",
+                        contentType: "application/json",
+                        data: JSON.stringify(rentalId)
+                    })
+                    .done(function () {
+                        toastr.success("Trả phim thành công!");
+                        table.row(button.parents("tr")).remove().draw();
+                    })
+                    .fail(function () {
+                        toastr.error("Có lỗi xảy ra.");
+                    });
+                }
+            });
+        });
+    });
+    </script>
+}

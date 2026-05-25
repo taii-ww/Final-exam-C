@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "Book Movie";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var minDate = DateTime.Now.ToString("yyyy-MM-dd");
+    var minReturnDate = DateTime.Now.AddDays(1).ToString("yyyy-MM-dd");
+}
+
+<h2>Book a Movie: @ViewBag.MovieName</h2>
+
+
+<div class="alert alert-info" style="max-width:400px; margin:20px 0;">
+    <table class="table table-condensed" style="margin:0;">
+        <tr>
+            <td>Giá thuê gốc:</td>
+            <td><strong>@string.Format("{0:N0}", ViewBag.RentalPrice) VNĐ</strong></td>
+        </tr>
+        @if (ViewBag.Discount > 0)
+        {
+            <tr>
+                <td>Giảm giá thành viên:</td>
+                <td><span class="label label-success">-@ViewBag.Discount%</span></td>
+            </tr>
+        }
+        <tr>
+            <td>Thành tiền:</td>
+            <td>
+                <strong style="color:#e74c3c; font-size:16px;">
+                    @string.Format("{0:N0}", ViewBag.FinalPrice) VNĐ
+                </strong>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div id="bookingForm">
+    <div class="form-group">
+        <label>Scheduled Rental Date</label>
+        <input type="date" id="scheduledRentalDate" class="form-control" min="@minDate" />
+    </div>
+    <div class="form-group">
+        <label>Scheduled Return Date</label>
+        <input type="date" id="scheduledReturnDate" class="form-control" min="@minReturnDate" />
+    </div>
+
+    <div class="form-group" style="max-width:400px;">
+        <label>Mã khuyến mãi (nếu có)</label>
+        <div class="input-group">
+            <input type="text" id="promoCode" class="form-control" placeholder="Nhập mã..." />
+            <span class="input-group-btn">
+                <button id="btnApplyPromo" class="btn btn-warning">Áp dụng</button>
+            </span>
+        </div>
+        <span id="promoMessage" style="font-size:13px;"></span>
+    </div>
+    <button id="btnBook" class="btn btn-primary">Confirm Booking</button>
+    <a href="/movies" class="btn btn-default">Cancel</a>
+</div>
+
+@section scripts{
+    <script>
+        var movieId = @ViewBag.MovieId;
+
+        $("#btnBook").click(function () {
+            var rentalDate = $("#scheduledRentalDate").val();
+            var returnDate = $("#scheduledReturnDate").val();
+
+            if (!rentalDate || !returnDate) {
+                toastr.error("Please fill in both dates.");
+                return;
+            }
+            if (returnDate <= rentalDate) {
+                toastr.error("Return date must be after rental date.");
+                return;
+            }
+            $.ajax({
+                url: "/api/bookRentals",
+                method: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    movieId: movieId,
+                    scheduledRentalDate: rentalDate,
+                    scheduledReturnDate: returnDate,
+                    promoCode: $("#promoCode").val()
+                })
+            })
+            .done(function () {
+                toastr.success("Movie booked successfully!");
+                setTimeout(function() { window.location = "/movies"; }, 2000);
+            })
+            .fail(function (xhr) {
+                toastr.error("Something went wrong.");
+            });
+        });
+
+        var promoDiscount = 0;
+
+        $("#btnApplyPromo").click(function () {
+            var code = $("#promoCode").val();
+            if (!code) return;
+
+            $.ajax({
+                url: "/api/promotions/validate?code=" + code + "&movieId=" + movieId,
+                method: "GET"
+            })
+                .done(function (result) {
+                    promoDiscount = result.discountPercent;
+                    $("#promoMessage").html(
+                        "<span class='text-success'>Áp dụng thành công! Giảm thêm " + promoDiscount + "%</span>"
+                    );
+                })
+                .fail(function () {
+                    promoDiscount = 0;
+                    $("#promoMessage").html("<span class='text-danger'>Mã không hợp lệ hoặc đã hết hạn.</span>");
+                });
+        });
+    </script>
+}
