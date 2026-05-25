@@ -1,0 +1,120 @@
+﻿@model dynamic
+@{
+    ViewBag.Title = "New Rental";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="max-width:600px; margin:30px auto;">
+    <div style="background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
+        <div style="background:#2c3e50; padding:25px 30px;">
+            <h2 style="color:#fff; margin:0;">
+                <i class="glyphicon glyphicon-plus-sign"></i> New Rental
+            </h2>
+        </div>
+        <div style="padding:30px;">
+            <form id="newRental">
+                <div class="form-group">
+                    <label style="font-weight:600;"><i class="glyphicon glyphicon-user"></i> Khách hàng</label>
+                    <div class="tt-container">
+                        <input id="customer" name="customer" data-rule-validCustomer="true" required type="text" value="" class="form-control" placeholder="Tìm khách hàng..." />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label style="font-weight:600;"><i class="glyphicon glyphicon-film"></i> Phim</label>
+                    <div class="tt-container">
+                        <input id="movie" name="movie" data-rule-atLeastOneMovie="true" type="text" value="" class="form-control" placeholder="Tìm phim..." />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <ul id="movies" class="list-group" style="margin-top:5px;"></ul>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;"><i class="glyphicon glyphicon-calendar"></i> Ngày thuê</label>
+                            <input type="date" id="scheduledRentalDate" name="scheduledRentalDate" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label style="font-weight:600;"><i class="glyphicon glyphicon-calendar"></i> Ngày trả</label>
+                            <input type="date" id="scheduledReturnDate" name="scheduledReturnDate" class="form-control" required />
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <button class="btn btn-primary btn-lg btn-block">
+                    <i class="glyphicon glyphicon-ok"></i> Xác nhận
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(document).ready(function () {
+            var vm = { movieIds: [] };
+
+            var customers = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: { url: '/api/customers?query=%QUERY', wildcard: '%QUERY' }
+            });
+
+            $('#customer').typeahead({ minLength: 3, highlight: true }, {
+                name: 'customers', display: 'name', source: customers
+            }).on("typeahead:select", function (e, customer) {
+                vm.customerId = customer.id;
+            });
+
+            var movies = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: { url: '/api/movies?query=%QUERY', wildcard: '%QUERY' }
+            });
+
+            $('#movie').typeahead({ minLength: 3, highlight: true }, {
+                name: 'movies', display: 'name', source: movies
+            }).on("typeahead:select", function (e, movie) {
+                $("#movies").append("<li class='list-group-item'><i class='glyphicon glyphicon-film'></i> " + movie.name + "</li>");
+                $("#movie").typeahead("val", "");
+                vm.movieIds.push(movie.id);
+            });
+
+            $.validator.addMethod("validCustomer", function () {
+                return vm.customerId && vm.customerId !== 0;
+            }, "Vui lòng chọn khách hàng hợp lệ.");
+
+            $.validator.addMethod("atLeastOneMovie", function () {
+                return vm.movieIds.length > 0;
+            }, "Vui lòng chọn ít nhất một phim.");
+
+            var validator = $("#newRental").validate({
+                submitHandler: function () {
+                    vm.scheduledRentalDate = $("#scheduledRentalDate").val();
+                    vm.scheduledReturnDate = $("#scheduledReturnDate").val();
+                    if (vm.scheduledReturnDate <= vm.scheduledRentalDate) {
+                        toastr.error("Ngày trả phải sau ngày thuê.");
+                        return false;
+                    }
+                    $.ajax({ url: "/api/newRentals", method: "post", data: vm })
+                        .done(function () {
+                            toastr.success("Tạo rental thành công!");
+                            $("#customer").typeahead("val", "");
+                            $("#movie").typeahead("val", "");
+                            $("#movies").empty();
+                            vm = { movieIds: [] };
+                            validator.resetForm();
+                        })
+                        .fail(function () { toastr.error("Có lỗi xảy ra."); });
+                    return false;
+                }
+            });
+        });
+    </script>
+}
