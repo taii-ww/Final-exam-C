@@ -45,7 +45,7 @@
                 {
                     data: "id",
                     render: function (data) {
-                        return "<button class='btn btn-warning btn-sm js-return' data-rental-id=" + data + ">Trả phim</button>";
+                        return "<button class='btn btn-warning btn-sm js-return' data-rental-id='" + data + "'>Trả phim</button>";
                     }
                 }
             ]
@@ -54,14 +54,14 @@
         $("#rentalsTable").on("click", ".js-return", function () {
             var button = $(this);
             var rentalId = button.attr("data-rental-id");
-            bootbox.confirm("Xác nhận trả phim?", function (result) {
-                if (result) {
-                    $.ajax({
-                        url: "/api/returnRentals",
-                        method: "POST",
-                        contentType: "application/json",
-                        data: JSON.stringify(rentalId)
-                    })
+
+            if (confirm("Xác nhận trả phim?")) {
+                $.ajax({
+                    url: "/api/returnRentals",
+                    method: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(parseInt(rentalId))
+                })
                     .done(function () {
                         toastr.success("Trả phim thành công!");
                         table.row(button.parents("tr")).remove().draw();
@@ -69,9 +69,8 @@
                     .fail(function () {
                         toastr.error("Có lỗi xảy ra.");
                     });
-                }
-            });
+            }
         });
-    });
+    }); 
     </script>
 }

@@ -21,11 +21,15 @@
                 <td><span class="label label-success">-@ViewBag.Discount%</span></td>
             </tr>
         }
+        <tr id="rentalDaysRow">
+            <td>Số ngày thuê:</td>
+            <td><span id="rentalDaysDisplay">—</span></td>
+        </tr>
         <tr>
             <td>Thành tiền:</td>
             <td>
                 <strong style="color:#e74c3c; font-size:16px;">
-                    @string.Format("{0:N0}", ViewBag.FinalPrice) VNĐ
+                    <span id="finalPriceDisplay">@string.Format("{0:N0}", ViewBag.FinalPrice) VNĐ</span>
                 </strong>
             </td>
         </tr>
@@ -94,6 +98,33 @@
 
         var promoDiscount = 0;
 
+        var basePrice = @ViewBag.RentalPrice;
+var memberDiscount = @ViewBag.Discount;
+
+function updateFinalPrice() {
+    var d1 = $("#scheduledRentalDate").val();
+    var d2 = $("#scheduledReturnDate").val();
+    if (!d1 || !d2) return;
+
+    var days = Math.floor((new Date(d2) - new Date(d1)) / 86400000);
+    if (days <= 0) return;
+
+    // Tính giá: giá gốc * số ngày * giảm giá thành viên * giảm giá promo
+    var afterMember = basePrice * (1 - memberDiscount / 100);
+    var afterPromo  = afterMember * (1 - promoDiscount / 100);
+    var total = afterPromo * days;
+
+    // Cập nhật UI
+    $("#finalPriceDisplay").text(total.toLocaleString('vi-VN') + " VNĐ");
+
+    // Cập nhật dòng số ngày nếu có
+    if ($("#rentalDaysRow").length) {
+        $("#rentalDaysDisplay").text(days + " ngày");
+    }
+}
+
+$("#scheduledRentalDate, #scheduledReturnDate").on("change", updateFinalPrice);
+
         $("#btnApplyPromo").click(function () {
             var code = $("#promoCode").val();
             if (!code) return;
@@ -107,6 +138,7 @@
                     $("#promoMessage").html(
                         "<span class='text-success'>Áp dụng thành công! Giảm thêm " + promoDiscount + "%</span>"
                     );
+                    updateFinalPrice(); // ← thêm dòng này
                 })
                 .fail(function () {
                     promoDiscount = 0;

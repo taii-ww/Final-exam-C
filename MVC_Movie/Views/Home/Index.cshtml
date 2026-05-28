@@ -1,33 +1,344 @@
-﻿@{
+@model MVC_Movie.ViewModels.HomeViewModel
+@using MVC_Movie.Models
+@{
     ViewBag.Title = "Home Page";
 }
 
-<main>
-    <section class="row" aria-labelledby="aspnetTitle">
-        <h1 id="title">ASP.NET</h1>
-        <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-        <p><a href="https://asp.net" class="btn btn-primary btn-md">Learn more &raquo;</a></p>
-    </section>
+<div style="padding: 20px 0;">
 
-    <div class="row">
-        <section class="col-md-4" aria-labelledby="gettingStartedTitle">
-            <h2 id="gettingStartedTitle">Getting started</h2>
-            <p>
-                ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-                enables a clean separation of concerns and gives you full control over markup
-                for enjoyable, agile development.
-            </p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="librariesTitle">
-            <h2 id="librariesTitle">Get more libraries</h2>
-            <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-        </section>
-        <section class="col-md-4" aria-labelledby="hostingTitle">
-            <h2 id="hostingTitle">Web Hosting</h2>
-            <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-            <p><a class="btn btn-outline-dark" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
-        </section>
-    </div>
-</main>
+    @if (!Request.IsAuthenticated)
+    {
+        <div class="text-center" style="padding: 60px 0;">
+            <h2><i class="glyphicon glyphicon-film"></i> Welcome to RenTal Movies</h2>
+            <p class="text-muted" style="font-size:16px;">Please log in to view your current rentals.</p>
+            <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg">Login</a>
+        </div>
+    }
+    else if (Model.ActiveRentals == null)
+    {
+        <div class="alert alert-warning">
+            <strong>Notice:</strong> Your account is not linked to any customer profile.
+        </div>
+    }
+    else if (User.IsInRole(RoleName.CanManageMovies))
+    {
+        <!-- ADMIN DASHBOARD -->
+        <h3><i class="glyphicon glyphicon-dashboard"></i> Dashboard <small>Overview</small></h3>
+        <hr />
+
+        <!-- Row 1 -->
+        <div class="row" style="margin-bottom:12px;">
+            <div class="col-md-3">
+                <div class="stat-card sc-blue">
+                    <i class="glyphicon glyphicon-user"></i>
+                    <h2>@Model.TotalCustomers</h2>
+                    <p>Customers</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card sc-green">
+                    <i class="glyphicon glyphicon-film"></i>
+                    <h2>@Model.TotalMovies</h2>
+                    <p>Movies</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card sc-orange">
+                    <i class="glyphicon glyphicon-play-circle"></i>
+                    <h2>@Model.TotalActiveRentals</h2>
+                    <p>Active Rentals</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card sc-red">
+                    <i class="glyphicon glyphicon-warning-sign"></i>
+                    <h2>@Model.TotalOverdueRentals</h2>
+                    <p>Overdue</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row 2 -->
+        <div class="row" style="margin-bottom:28px;">
+            <div class="col-md-4">
+                <div class="stat-card sc-purple">
+                    <i class="glyphicon glyphicon-usd"></i>
+                    <h3>@Model.TotalRevenue.ToString("N0") VND</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card sc-teal">
+                    <i class="glyphicon glyphicon-stats"></i>
+                    <h3>@Model.RevenueThisMonth.ToString("N0") VND</h3>
+                    <p>This Month Revenue</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card sc-amber">
+                    <i class="glyphicon glyphicon-star"></i>
+                    <h2>@Model.TotalReviews</h2>
+                    <p>Reviews</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="stat-card sc-emerald">
+                    <i class="glyphicon glyphicon-tag"></i>
+                    <h2>@Model.ActivePromotions</h2>
+                    <p>Active Promotions</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Access -->
+        <h4><i class="glyphicon glyphicon-th"></i> Quick Access</h4>
+        <div class="row" style="margin-bottom:30px;">
+            <div class="col-md-2">
+                <a href="@Url.Action("Index", "Customers")" class="btn quick-access-btn btn-block">
+                    <i class="glyphicon glyphicon-user"></i><br />Customers
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("Index", "Movies")" class="btn quick-access-btn btn-block">
+                    <i class="glyphicon glyphicon-film"></i><br />Movies
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("New", "Rentals")" class="btn quick-access-btn btn-block">
+                    <i class="glyphicon glyphicon-plus"></i><br />New Rental
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("Return", "Rentals")" class="btn quick-access-btn btn-block">
+                    <i class="glyphicon glyphicon-export"></i><br />Return Movie
+                </a>
+            </div>
+            <div class="col-md-2">
+                <a href="@Url.Action("Index", "Promotions")" class="btn quick-access-btn btn-block">
+                    <i class="glyphicon glyphicon-tag"></i><br />Promotions
+                </a>
+            </div>
+        </div>
+
+        <hr />
+
+        <!-- Active Rentals -->
+        <h4>
+            <i class="glyphicon glyphicon-play-circle"></i> Active Rentals
+            <span class="badge">@Model.ActiveRentals.Count</span>
+            @if (Model.TotalOverdueRentals > 0)
+            {
+                <span class="label label-danger" style="margin-left:10px;">@Model.TotalOverdueRentals overdue!</span>
+            }
+        </h4>
+
+        if (!Model.ActiveRentals.Any())
+        {
+            <div class="alert alert-info">No active rentals.</div>
+        }
+        else
+        {
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Movie</th>
+                        <th>Genre</th>
+                        <th>Rented Date</th>
+                        <th>Due Date</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int i = 1;}
+                    @foreach (var r in Model.ActiveRentals)
+                    {
+                        <tr class="@(r.IsOverdue ? "danger" : "")">
+                            <td>@(i++)</td>
+                            <td>@r.CustomerName</td>
+                            <td><strong>@r.MovieTitle</strong></td>
+                            <td>@r.Genre</td>
+                            <td>@r.DateRented.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (r.ScheduledReturnDate.HasValue)
+                                {
+                                    @r.ScheduledReturnDate.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not specified</span>
+                                }
+                            </td>
+                            <td>@r.PricePaid.ToString("N0") VND</td>
+                            <td>
+                                @if (r.IsOverdue)
+                                {
+                                    <span class="label label-danger">Overdue</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-success">Active</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <br />
+
+        <!-- Rental History -->
+        <h4>
+            <i class="glyphicon glyphicon-ok-circle"></i> Rental History
+            <span class="badge">@Model.ReturnedRentals.Count</span>
+        </h4>
+
+        if (!Model.ReturnedRentals.Any())
+        {
+            <div class="alert alert-info">No rental history.</div>
+        }
+        else
+        {
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Movie</th>
+                        <th>Genre</th>
+                        <th>Rented Date</th>
+                        <th>Returned Date</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int j = 1;}
+                    @foreach (var r in Model.ReturnedRentals)
+                    {
+                        <tr>
+                            <td>@(j++)</td>
+                            <td>@r.CustomerName</td>
+                            <td>@r.MovieTitle</td>
+                            <td>@r.Genre</td>
+                            <td>@r.DateRented.ToString("dd/MM/yyyy")</td>
+                            <td>@r.DateReturned.Value.ToString("dd/MM/yyyy")</td>
+                            <td>@r.PricePaid.ToString("N0") VND</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+    else
+    {
+        <!-- NORMAL USER -->
+        <h3>
+            <i class="glyphicon glyphicon-user"></i>
+            Hello, <strong>@Model.CustomerName</strong>!
+        </h3>
+        <hr />
+
+        <h4>
+            <i class="glyphicon glyphicon-play-circle"></i> Active Rentals
+            <span class="badge">@Model.ActiveRentals.Count</span>
+        </h4>
+
+        if (!Model.ActiveRentals.Any())
+        {
+            <div class="alert alert-info">You have no active rentals.</div>
+        }
+        else
+        {
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Movie</th>
+                        <th>Genre</th>
+                        <th>Rented Date</th>
+                        <th>Due Date</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int i = 1;}
+                    @foreach (var r in Model.ActiveRentals)
+                    {
+                        <tr class="@(r.IsOverdue ? "danger" : "")">
+                            <td>@(i++)</td>
+                            <td><strong>@r.MovieTitle</strong></td>
+                            <td>@r.Genre</td>
+                            <td>@r.DateRented.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                @if (r.ScheduledReturnDate.HasValue)
+                                {
+                                    @r.ScheduledReturnDate.Value.ToString("dd/MM/yyyy")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Not specified</span>
+                                }
+                            </td>
+                            <td>@r.PricePaid.ToString("N0") VND</td>
+                            <td>
+                                @if (r.IsOverdue)
+                                {
+                                    <span class="label label-danger">Overdue</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-success">Active</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <br />
+
+        <h4>
+            <i class="glyphicon glyphicon-ok-circle"></i> Rental History
+            <span class="badge">@Model.ReturnedRentals.Count</span>
+        </h4>
+
+        if (!Model.ReturnedRentals.Any())
+        {
+            <div class="alert alert-info">No rental history.</div>
+        }
+        else
+        {
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Movie</th>
+                        <th>Genre</th>
+                        <th>Rented Date</th>
+                        <th>Returned Date</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{int j = 1;}
+                    @foreach (var r in Model.ReturnedRentals)
+                    {
+                        <tr>
+                            <td>@(j++)</td>
+                            <td>@r.MovieTitle</td>
+                            <td>@r.Genre</td>
+                            <td>@r.DateRented.ToString("dd/MM/yyyy")</td>
+                            <td>@r.DateReturned.Value.ToString("dd/MM/yyyy")</td>
+                            <td>@r.PricePaid.ToString("N0") VND</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>

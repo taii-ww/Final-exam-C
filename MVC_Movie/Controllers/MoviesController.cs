@@ -114,6 +114,7 @@ namespace MVC_Movie.Controllers
                 movieInDb.NumberInStock = movie.NumberInStock;
                 movieInDb.ReleaseDate = movie.ReleaseDate;
                 movieInDb.Description = movie.Description;
+                movieInDb.RentalPrice = movie.RentalPrice;
 
                 if (imageFile != null && imageFile.ContentLength > 0)
                 {
@@ -141,10 +142,15 @@ namespace MVC_Movie.Controllers
         public ActionResult Details(int id)
         {
             var movie = _appDbContext.Movies.Include(m => m.Genre).Single(m => m.Id == id);
-
             if (movie == null)
                 return HttpNotFound();
 
+            var reviews = _appDbContext.Reviews
+                .Include("Customer")
+                .Where(r => r.MovieId == id)
+                .ToList();
+
+            ViewBag.Reviews = reviews;
             return View(movie);
         }
 

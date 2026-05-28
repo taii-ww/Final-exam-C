@@ -25,6 +25,15 @@ namespace MVC_Movie
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
+
+            bundles.Add(new ScriptBundle("~/bundles/lib").Include(
+    "~/Scripts/jquery-{version}.js",
+    "~/Scripts/DataTables/jquery.dataTables.js",
+    "~/Scripts/DataTables/dataTables.bootstrap.js",
+    "~/Scripts/bootbox.js",
+    "~/Scripts/toastr.js",
+    "~/Scripts/typeahead.bundle.js"
+));
         }
     }
 }

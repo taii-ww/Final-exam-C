@@ -40,13 +40,18 @@ namespace MVC_Movie.Controllers.Api
 
                 movie.NumberAvailable--;
 
+                // Tính số ngày thuê, tối thiểu 1 ngày
+                int rentalDays = (newRental.ScheduledReturnDate - newRental.ScheduledRentalDate).Days;
+                if (rentalDays < 1) rentalDays = 1;
+
                 var rental = new Rental()
                 {
                     Customer = customer,
                     Movie = movie,
                     DateRented = DateTime.Now,
-                     ScheduledRentalDate = newRental.ScheduledRentalDate,  // Thêm dòng này
-                    ScheduledReturnDate = newRental.ScheduledReturnDate   // Thêm dòng này
+                    ScheduledRentalDate = newRental.ScheduledRentalDate,
+                    ScheduledReturnDate = newRental.ScheduledReturnDate,
+                    PricePaid = movie.RentalPrice * rentalDays   // <-- Tính theo ngày
                 };
 
                 _appDbContext.Rentals.Add(rental);

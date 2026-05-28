@@ -72,12 +72,11 @@ namespace MVC_Movie.Controllers.Api
                 throw new HttpResponseException(HttpStatusCode.BadRequest);
 
             var movieInDb = _appDbContext.Movies.SingleOrDefault(m => m.Id == id);
-
             if (movieInDb == null)
                 throw new HttpResponseException(HttpStatusCode.NotFound);
 
             Mapper.Map(movieDto, movieInDb);
-
+            movieInDb.RentalPrice = movieDto.RentalPrice; // thêm dòng này
             _appDbContext.SaveChanges();
         }
 

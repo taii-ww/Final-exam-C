@@ -57,7 +57,11 @@ namespace MVC_Movie.Controllers.Api
                     promoDiscount = promo.DiscountPercent;
             }
 
+            int rentalDays = (bookRental.ScheduledReturnDate - bookRental.ScheduledRentalDate).Days;
+            if (rentalDays < 1) rentalDays = 1;
+
             var pricePaid = movie.RentalPrice
+                * rentalDays
                 * (1 - (decimal)discount / 100)
                 * (1 - (decimal)promoDiscount / 100);
 

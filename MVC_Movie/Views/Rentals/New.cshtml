@@ -4,7 +4,27 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div style="max-width:600px; margin:30px auto;">
+@* Thêm đoạn này *@
+<style>
+    #newRental label {
+        color: #2c3e50 !important;
+        font-weight: 600;
+    }
+
+    #newRental .form-control {
+        color: #2c3e50;
+    }
+
+    #summaryBox table th {
+        color: #2c3e50 !important;
+    }
+
+    #summaryBox table td {
+        color: #2c3e50 !important;
+    }
+</style>
+
+<div style="max-width:650px; margin:30px auto;">
     <div style="background:#fff; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); overflow:hidden;">
         <div style="background:#2c3e50; padding:25px 30px;">
             <h2 style="color:#fff; margin:0;">
@@ -13,39 +33,77 @@
         </div>
         <div style="padding:30px;">
             <form id="newRental">
+                <!-- Khách hàng -->
                 <div class="form-group">
-                    <label style="font-weight:600;"><i class="glyphicon glyphicon-user"></i> Khách hàng</label>
-                    <div class="tt-container">
-                        <input id="customer" name="customer" data-rule-validCustomer="true" required type="text" value="" class="form-control" placeholder="Tìm khách hàng..." />
-                    </div>
+                    <label style="font-weight:600; color:#2c3e50;">
+                        <i class="glyphicon glyphicon-user"></i> Khách hàng
+                    </label>
+                    <input id="customer" name="customer" data-rule-validCustomer="true"
+                           required type="text" class="form-control" placeholder="Tìm khách hàng..." />
                 </div>
+
+                <!-- Phim -->
                 <div class="form-group">
-                    <label style="font-weight:600;"><i class="glyphicon glyphicon-film"></i> Phim</label>
-                    <div class="tt-container">
-                        <input id="movie" name="movie" data-rule-atLeastOneMovie="true" type="text" value="" class="form-control" placeholder="Tìm phim..." />
-                    </div>
+                    <label style="font-weight:600; color:#2c3e50;">
+                        <i class="glyphicon glyphicon-film"></i> Phim
+                    </label>
+                    <input id="movie" name="movie" data-rule-atLeastOneMovie="true"
+                           type="text" class="form-control" placeholder="Tìm phim..." />
                 </div>
-                <div class="row">
-                    <div class="col-md-8">
-                        <ul id="movies" class="list-group" style="margin-top:5px;"></ul>
-                    </div>
-                </div>
+
+                <!-- Ngày thuê / trả -->
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label style="font-weight:600;"><i class="glyphicon glyphicon-calendar"></i> Ngày thuê</label>
-                            <input type="date" id="scheduledRentalDate" name="scheduledRentalDate" class="form-control" required />
+                            <label style="font-weight:600; color:#2c3e50;">
+                                <i class="glyphicon glyphicon-calendar"></i> Ngày thuê
+                            </label>
+                            <input type="date" id="scheduledRentalDate"
+                                   name="scheduledRentalDate" class="form-control" required />
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label style="font-weight:600;"><i class="glyphicon glyphicon-calendar"></i> Ngày trả</label>
-                            <input type="date" id="scheduledReturnDate" name="scheduledReturnDate" class="form-control" required />
+                            <label style="font-weight:600; color:#2c3e50;">
+                                <i class="glyphicon glyphicon-calendar"></i> Ngày trả
+                            </label>
+                            <input type="date" id="scheduledReturnDate"
+                                   name="scheduledReturnDate" class="form-control" required />
                         </div>
                     </div>
                 </div>
+
+                <!-- Bảng tóm tắt phim đã chọn + giá -->
+                <div id="summaryBox" style="display:none; margin-top:10px;">
+                    <label style="font-weight:600; color:#2c3e50;">
+                        <i class="glyphicon glyphicon-list-alt"></i> Tóm tắt đơn thuê
+                    </label>
+                    <table class="table table-bordered table-sm" style="font-size:14px; color:#2c3e50;">
+                        <thead style="background:#dfe6e9; color:#2c3e50;">
+                            <tr>
+                                <th>Tên phim</th>
+                                <th style="width:100px; text-align:right;">Giá/ngày</th>
+                                <th style="width:70px; text-align:center;">Ngày</th>
+                                <th style="width:110px; text-align:right;">Thành tiền</th>
+                                <th style="width:40px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="movieTableBody"></tbody>
+                        <tfoot>
+                            <tr style="background:#dfe6e9; font-weight:bold; color:#2c3e50;">
+                                <td colspan="3" style="text-align:right;">Tổng cộng:</td>
+                                <td style="text-align:right; color:#8e44ad;">
+                                    <span id="totalPrice">0</span> đ
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
                 <hr />
-                <button class="btn btn-primary btn-lg btn-block">
+                <button class="btn btn-primary btn-lg btn-block"
+                        style="background:#8e44ad; border-color:#8e44ad;">
                     <i class="glyphicon glyphicon-ok"></i> Xác nhận
                 </button>
             </form>
@@ -59,6 +117,7 @@
     <script>
         $(document).ready(function () {
             var vm = { movieIds: [] };
+            var movieList = [];
 
             var customers = new Bloodhound({
                 datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
@@ -81,9 +140,80 @@
             $('#movie').typeahead({ minLength: 3, highlight: true }, {
                 name: 'movies', display: 'name', source: movies
             }).on("typeahead:select", function (e, movie) {
-                $("#movies").append("<li class='list-group-item'><i class='glyphicon glyphicon-film'></i> " + movie.name + "</li>");
-                $("#movie").typeahead("val", "");
+                if (vm.movieIds.indexOf(movie.id) !== -1) {
+                    toastr.warning("Phim này đã được thêm.");
+                    $("#movie").typeahead("val", "");
+                    return;
+                }
                 vm.movieIds.push(movie.id);
+                movieList.push({ id: movie.id, name: movie.name, price: movie.rentalPrice || 0 });
+                $("#movie").typeahead("val", "");
+                renderSummary();
+            });
+
+            $("#scheduledRentalDate, #scheduledReturnDate").on("change", function () {
+                renderSummary();
+            });
+
+            function getRentalDays() {
+                var d1 = $("#scheduledRentalDate").val();
+                var d2 = $("#scheduledReturnDate").val();
+                if (!d1 || !d2) return 0;
+                var days = Math.floor((new Date(d2) - new Date(d1)) / 86400000);
+                return days > 0 ? days : 0;
+            }
+
+            function formatVND(amount) {
+                return amount.toLocaleString('vi-VN');
+            }
+
+            function renderSummary() {
+                if (movieList.length === 0) {
+                    $("#summaryBox").hide();
+                    return;
+                }
+
+                var days = getRentalDays();
+                var tbody = $("#movieTableBody");
+                tbody.empty();
+
+                var total = 0;
+                $.each(movieList, function (i, m) {
+                    var subtotal = days > 0 ? m.price * days : 0;
+                    total += subtotal;
+
+                    var daysText = days > 0
+                        ? days + " ngày"
+                        : '<span style="color:red;">—</span>';
+
+                    var subtotalText = days > 0
+                        ? formatVND(subtotal) + " đ"
+                        : '<span style="color:#aaa;">—</span>';
+
+                    tbody.append(
+                        '<tr>' +
+                        '<td><i class="glyphicon glyphicon-film"></i> ' + m.name + '</td>' +
+                        '<td style="text-align:right;">' + formatVND(m.price) + ' đ</td>' +
+                        '<td style="text-align:center;">' + daysText + '</td>' +
+                        '<td style="text-align:right;">' + subtotalText + '</td>' +
+                        '<td style="text-align:center;">' +
+                        '<a href="#" class="remove-movie text-danger" data-id="' + m.id + '">' +
+                        '<i class="glyphicon glyphicon-remove"></i></a>' +
+                        '</td>' +
+                        '</tr>'
+                    );
+                });
+
+                $("#totalPrice").text(formatVND(total));
+                $("#summaryBox").show();
+            }
+
+            $(document).on("click", ".remove-movie", function (e) {
+                e.preventDefault();
+                var id = parseInt($(this).data("id"));
+                vm.movieIds = vm.movieIds.filter(function (x) { return x !== id; });
+                movieList = movieList.filter(function (m) { return m.id !== id; });
+                renderSummary();
             });
 
             $.validator.addMethod("validCustomer", function () {
@@ -98,20 +228,26 @@
                 submitHandler: function () {
                     vm.scheduledRentalDate = $("#scheduledRentalDate").val();
                     vm.scheduledReturnDate = $("#scheduledReturnDate").val();
-                    if (vm.scheduledReturnDate <= vm.scheduledRentalDate) {
+
+                    if (getRentalDays() <= 0) {
                         toastr.error("Ngày trả phải sau ngày thuê.");
                         return false;
                     }
+
                     $.ajax({ url: "/api/newRentals", method: "post", data: vm })
                         .done(function () {
                             toastr.success("Tạo rental thành công!");
                             $("#customer").typeahead("val", "");
                             $("#movie").typeahead("val", "");
-                            $("#movies").empty();
+                            movieList = [];
                             vm = { movieIds: [] };
+                            $("#summaryBox").hide();
                             validator.resetForm();
                         })
-                        .fail(function () { toastr.error("Có lỗi xảy ra."); });
+                        .fail(function () {
+                            toastr.error("Có lỗi xảy ra.");
+                        });
+
                     return false;
                 }
             });
